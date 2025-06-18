@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Multi-Engine Video Prompt Generator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      background: linear-gradient(120deg, #A993FE 0%, #6BACE6 100%);
+      min-height: 100vh;
+      font-family: 'Inter', Arial, sans-serif;
+      color: #23272F;
+    }
+    .header {
+      background: linear-gradient(90deg, #A993FE 0%, #6BACE6 100%);
+      color: #fff; padding: 32px 0 16px 0;
+      text-align: center;
+      font-size: 2.3rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      border-bottom-left-radius: 32px;
+      border-bottom-right-radius: 32px;
+      box-shadow: 0 3px 12px #8c7ddf33;
+    }
+    .container {
+      max-width: 820px;
+      margin: 30px auto 0 auto;
+      background: #fff;
+      border-radius: 28px;
+      box-shadow: 0 6px 32px #4d53a822;
+      padding: 32px 28px 28px 28px;
+      position: relative;
+    }
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #7043e0;
+      letter-spacing: 1px;
+    }
+    .upload-card {
+      background: #D8FFEC;
+      border-radius: 16px;
+      padding: 20px 16px;
+      margin-bottom: 28px;
+      box-shadow: 0 2px 12px #6bace620;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .upload-card input[type="file"] {
+      padding: 8px;
+    }
+    .img-preview {
+      width: 76px; height: 76px; border-radius: 12px;
+      object-fit: cover; border: 2px solid #A993FE;
+      box-shadow: 0 2px 8px #b5c9f780;
+      background: #f3f7fd;
+      display: none;
+    }
+    .input-card {
+      background: #f7f8fa;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 22px;
+      box-shadow: 0 2px 10px #d6dbf650;
+      display: flex; flex-wrap: wrap; gap: 16px 24px;
+    }
+    .input-group {
+      flex: 1 1 200px;
+      min-width: 200px;
+      margin-bottom: 10px;
+    }
+    label {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #444;
+      display: block;
+      margin-bottom: 4px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1.5px solid #C8BFFD;
+      margin-bottom: 6px;
+      font-size: 1rem;
+      outline: none;
+      background: #fff;
+      transition: border 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #6BACE6;
+    }
+    .preset-btn, .batch-btn, .random-btn {
+      background: linear-gradient(90deg, #A993FE 0%, #6BACE6 100%);
+      color: #fff; border: none;
+      padding: 10px 18px; border-radius: 10px;
+      font-weight: bold; margin-right: 10px;
+      cursor: pointer; box-shadow: 0 1px 6px #A993FE22;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .preset-btn:hover, .batch-btn:hover, .random-btn:hover {
+      background: linear-gradient(90deg, #6BACE6 0%, #A993FE 100%);
+      box-shadow: 0 2px 14px #6BACE644;
+    }
+    .tab-engine {
+      display: flex; gap: 8px; margin: 24px 0 16px 0;
+      flex-wrap: wrap;
+    }
+    .engine-btn {
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 22px;
+      border: none;
+      cursor: pointer;
+      background: #E6E8EC;
+      color: #4a4862;
+      font-size: 1.02rem;
+      margin-right: 2px;
+      box-shadow: 0 1px 6px #E6E8EC99;
+      transition: background 0.18s, color 0.18s;
+    }
+    .engine-btn.active, .engine-btn:focus {
+      background: linear-gradient(90deg, #A993FE 0%, #6BACE6 100%);
+      color: #fff; outline: none;
+    }
+    .output-card {
+      background: linear-gradient(120deg, #F7F8FA 0%, #E3EBFB 100%);
+      border-radius: 16px;
+      box-shadow: 0 2px 10px #A993FE22;
+      padding: 22px 20px;
+      margin-bottom: 18px;
+    }
+    .output-title {
+      font-weight: 600; color: #7043e0;
+      font-size: 1.1rem; margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+    .output-box {
+      background: #fff; border-radius: 10px;
+      font-family: 'JetBrains Mono', 'Menlo', monospace;
+      padding: 13px; margin-bottom: 7px;
+      min-height: 50px;
+      color: #2d254b;
+      font-size: 1rem;
+      box-shadow: 0 1px 4px #A993FE11;
+      position: relative;
+    }
+    .copy-btn {
+      background: #6BACE6;
+      color: #fff; border: none;
+      border-radius: 7px;
+      padding: 6px 12px; font-size: .96rem;
+      float: right;
+      margin-top: -4px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .copy-btn:hover {
+      background: #7043e0;
+    }
+    .negative-title {
+      color: #b7516c;
+      font-size: .98rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .negative-prompt-box {
+      background: #FFE6F7;
+      border-radius: 7px;
+      border: 1.5px solid #f7c8e7;
+      padding: 8px;
+      margin-bottom: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .97rem;
+      color: #c0297a;
+    }
+    @media (max-width: 700px) {
+      .container { padding: 16px 5vw; }
+      .input-card { flex-direction: column; gap: 2px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    AI Video Prompt Generator — Multi Engine
+  </div>
+  <div class="container">
+    <div class="section-title">Upload Gambar Referensi (Opsional)</div>
+    <div class="upload-card">
+      <input type="file" id="refImage" accept="image/*" onchange="showPreview(event)">
+      <img class="img-preview" id="imgPreview" alt="Preview" />
+      <div style="font-size:.98rem;color:#555;">
+        Gambar akan membantu AI menyesuaikan suasana visual prompt.<br>
+        (Opsional, bisa di-skip jika tidak ada)
+      </div>
+    </div>
+    <form class="input-card" id="promptForm" autocomplete="off">
+      <div class="input-group">
+        <label>Subjek</label>
+        <input type="text" id="subjek" placeholder="Misal: Seorang wanita mengenakan gamis putih elegan">
+      </div>
+      <div class="input-group">
+        <label>Aksi</label>
+        <input type="text" id="aksi" placeholder="Misal: Berdiri anggun, memperlihatkan detail gamis">
+      </div>
+      <div class="input-group">
+        <label>Detail</label>
+        <input type="text" id="detail" placeholder="Misal: Katun premium, lengan panjang, renda halus">
+      </div>
+      <div class="input-group">
+        <label>Mood/Atmosfer</label>
+        <input type="text" id="mood" placeholder="Misal: Elegan, santai, nyaman, stylish">
+      </div>
+      <div class="input-group">
+        <label>Pencahayaan</label>
+        <input type="text" id="pencahayaan" placeholder="Misal: Cahaya alami golden hour">
+      </div>
+      <div class="input-group">
+        <label>Latar Belakang</label>
+        <input type="text" id="latar" placeholder="Misal: Taman hijau dengan bunga bermekaran">
+      </div>
+      <div class="input-group">
+        <label>Ekspresi</label>
+        <input type="text" id="ekspresi" placeholder="Misal: Senyuman lembut, percaya diri">
+      </div>
+      <div class="input-group">
+        <label>Style Visual</label>
+        <input type="text" id="styleVisual" placeholder="Misal: Cinematic, ultrarealistic, bokeh, dynamic">
+      </div>
+    </form>
+    <div style="margin-bottom:14px;">
+      <button class="preset-btn" onclick="applyPreset('fashion')">Preset Fashion</button>
+      <button class="preset-btn" onclick="applyPreset('sport')">Preset Sport</button>
+      <button class="preset-btn" onclick="applyPreset('ads')">Preset Iklan</button>
+      <button class="random-btn" onclick="randomizeAll()">Randomize All</button>
+    </div>
+    <div class="tab-engine" id="engineTabs">
+      <!-- Engine Tabs -->
+    </div>
+    <div id="engineOutputs">
+      <!-- Engine Output Cards -->
+    </div>
+  </div>
+  <script>
+    // ENGINE DATA
+    const engineList = [
+      {
+        name: "Kling AI", code: "kling",
+        color: "linear-gradient(90deg, #A993FE 0%, #6BACE6 100%)",
+        style: "cinematic, dynamic lighting, action sequence, ultrarealistic"
+      },
+      {
+        name: "Google Veo 2", code: "veo2",
+        color: "linear-gradient(90deg, #d6d7ff 0%, #7fd1ea 100%)",
+        style: "photorealistic, high definition, vibrant, cinematic"
+      },
+      {
+        name: "Google Veo 3", code: "veo3",
+        color: "linear-gradient(90deg, #b4ffb3 0%, #a0d3fe 100%)",
+        style: "ultrarealistic, expressive, filmic, natural"
+      },
+      {
+        name: "Leonardo AI", code: "leonardo",
+        color: "linear-gradient(90deg, #fde6ff 0%, #b493e6 100%)",
+        style: "artistic, illustration, ethereal, high detail"
+      },
+      {
+        name: "RunwayML", code: "runway",
+        color: "linear-gradient(90deg, #ffd8e6 0%, #feeffd 100%)",
+        style: "cinematic, editorial, vivid, colorful, fashion"
+      },
+      {
+        name: "FloraAI", code: "flora",
+        color: "linear-gradient(90deg, #eaffd8 0%, #fffdc4 100%)",
+        style: "lush, dreamy, floral, vibrant, pastel, art nouveau"
+      },
+      {
+        name: "Flux", code: "flux",
+        color: "linear-gradient(90deg, #B0BFFF 0%, #f2baff 100%)",
+        style: "stylized, dynamic, bold composition, energetic, modern"
+      }
+    ];
+
+    // TAB ENGINE & OUTPUT UI
+    function buildEngineTabs(activeEngine) {
+      let html = '';
+      engineList.forEach((eng, i) => {
+        html += `<button type="button" class="engine-btn${eng.code===activeEngine?' active':''}" 
+          style="background: ${eng.code===activeEngine?eng.color:'#E6E8EC'}"
+          onclick="switchEngine('${eng.code}')">${eng.name}</button>`;
+      });
+      document.getElementById('engineTabs').innerHTML = html;
+    }
+    let activeEngine = engineList[0].code;
+    buildEngineTabs(activeEngine);
+
+    function switchEngine(code) {
+      activeEngine = code;
+      buildEngineTabs(activeEngine);
+      buildEngineOutput();
+    }
+
+    // FORM & PRESET
+    function getInputVal(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function getPromptData() {
+      return {
+        subjek: getInputVal('subjek'),
+        aksi: getInputVal('aksi'),
+        detail: getInputVal('detail'),
+        mood: getInputVal('mood'),
+        pencahayaan: getInputVal('pencahayaan'),
+        latar: getInputVal('latar'),
+        ekspresi: getInputVal('ekspresi'),
+        styleVisual: getInputVal('styleVisual'),
+        hasImage: !!window.uploadedImage,
+        imageDesc: window.uploadedImage ? '(ref: image uploaded)' : ''
+      };
+    }
+
+    // ENGINE STYLE MAP (Format Prompt + Negative Prompt)
+    function makePrompt(engineCode, data) {
+      let engine = engineList.find(e=>e.code===engineCode);
+      if (!engine) return '';
+      // Format utama
+      let txtimg = "";
+      let img2vid = "";
+      let neg = "";
+      // Default negative prompt map
+      const negMap = {
+        kling: "cartoon, low detail, static pose, noisy background, washed out, bland, blurry",
+        veo2: "anime, low-res, exaggerated, comic style, monotone, washed color",
+        veo3: "overexposed, soft focus, cartoon, flat, low energy, plain, cgi artifact",
+        leonardo: "photorealistic, plain, modern, sci-fi, flat background, lack of lineart",
+        runway: "black & white, low fashion, boring pose, busy background, flat colors",
+        flora: "urban, cityscape, mechanical, sci-fi, harsh shadows, non-organic",
+        flux: "flat color, static, dark mood, medieval, crowded"
+      };
+      // Prompt detail per engine
+      if(engineCode==="kling"){
+        txtimg = `${data.subjek}. ${data.aksi}. ${data.detail}. ${data.mood}. ${data.ekspresi}. ${data.pencahayaan}. ${data.latar}. Cinematic, dynamic, ${data.styleVisual||engine.style}. ${data.imageDesc}`.replace(/\s+/g,' ').trim();
+        img2vid = `Cinematic sequence: ${data.aksi}, focus on ${data.subjek}, ${data.detail}, ${data.latar}, dynamic camera, ultrarealistic, ${data.pencahayaan}, action shots, ${data.mood}, ${data.ekspresi}, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        neg = negMap.kling;
+      } else if(engineCode==="veo2"){
+        txtimg = `${data.subjek} ${data.aksi}. ${data.detail}, ${data.latar}, ${data.mood}. Photorealistic, high definition, vibrant, ${data.pencahayaan}, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        img2vid = `Follow ${data.subjek} as ${data.aksi}, in ${data.latar}, emphasize ${data.detail}, ${data.mood}, camera moves fluidly, ${data.pencahayaan}, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        neg = negMap.veo2;
+      } else if(engineCode==="veo3"){
+        txtimg = `${data.subjek}, expressive, ${data.aksi}, ${data.detail}. Natural background: ${data.latar}, soft ${data.pencahayaan}, ${data.mood}, filmic, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        img2vid = `Cinematic shot of ${data.subjek} ${data.aksi}, emotion: ${data.ekspresi||data.mood}, ${data.latar}, detailed ${data.detail}, natural ${data.pencahayaan}, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        neg = negMap.veo3;
+      } else if(engineCode==="leonardo"){
+        txtimg = `${data.subjek} ${data.aksi}, ${data.detail}, ${data.latar}. Illustration, ethereal, artistic, ${data.styleVisual||engine.style}, dreamy, ${data.pencahayaan}, ${data.mood}, ${data.ekspresi}. ${data.imageDesc}`;
+        img2vid = `Animate ${data.subjek} in an illustrative style as ${data.aksi}, with ${data.detail}, dreamy ${data.latar}, soft ${data.pencahayaan}, ${data.mood}, ${data.ekspresi}, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        neg = negMap.leonardo;
+      } else if(engineCode==="runway"){
+        txtimg = `Fashion style: ${data.subjek} ${data.aksi}, ${data.detail}, ${data.latar}, vivid, editorial, ${data.styleVisual||engine.style}, ${data.pencahayaan}, ${data.mood}, ${data.ekspresi}. ${data.imageDesc}`;
+        img2vid = `Cinematic ad: ${data.subjek} ${data.aksi}, fashion shots, macro detail: ${data.detail}, setting: ${data.latar}, lighting: ${data.pencahayaan}, ${data.styleVisual||engine.style}, ${data.mood}, energetic movement. ${data.imageDesc}`;
+        neg = negMap.runway;
+      } else if(engineCode==="flora"){
+        txtimg = `${data.subjek} ${data.aksi}, surrounded by ${data.latar||"lush, blooming flowers"}, ${data.detail}, pastel color palette, ethereal, dreamy, ${data.styleVisual||engine.style}, ${data.pencahayaan}, ${data.mood}, ${data.ekspresi}. ${data.imageDesc}`;
+        img2vid = `Animate scene with ${data.subjek} ${data.aksi}, in a magical ${data.latar}, flowers swaying, soft ${data.pencahayaan}, dreamy ${data.mood}, smooth camera movement, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        neg = negMap.flora;
+      } else if(engineCode==="flux"){
+        txtimg = `${data.subjek} ${data.aksi}, stylized, ${data.detail}, bold color, energetic composition, ${data.latar}, ${data.pencahayaan}, ${data.mood}, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        img2vid = `Dynamic video: ${data.subjek} ${data.aksi}, camera glides, sharp transitions, ${data.detail}, lively ${data.latar}, ${data.pencahayaan}, ${data.mood}, ${data.ekspresi}, ${data.styleVisual||engine.style}. ${data.imageDesc}`;
+        neg = negMap.flux;
+      }
+      return {txtimg, img2vid, neg};
+    }
+
+    // RENDER OUTPUT PER ENGINE
+    function buildEngineOutput() {
+      const data = getPromptData();
+      const eng = engineList.find(e=>e.code===activeEngine);
+      if(!eng) return;
+      const {txtimg, img2vid, neg} = makePrompt(activeEngine, data);
+      document.getElementById('engineOutputs').innerHTML = `
+      <div class="output-card" style="background:${eng.color}">
+        <div class="output-title">${eng.name} — Text to Image Prompt
+          <button class="copy-btn" onclick="copyOut('txtimg')">Copy</button>
+        </div>
+        <div class="output-box" id="out-txtimg">${txtimg||'<i>(Isi field di atas...)</i>'}</div>
+        <div class="output-title">${eng.name} — Image to Video Prompt
+          <button class="copy-btn" onclick="copyOut('img2vid')">Copy</button>
+        </div>
+        <div class="output-box" id="out-img2vid">${img2vid||'<i>(Isi field di atas...)</i>'}</div>
+        <div class="negative-title">Negative Prompt:</div>
+        <div class="negative-prompt-box" id="out-neg">${neg||'-'}</div>
+        <button class="copy-btn" style="margin-top:6px;float:none" onclick="copyOut('neg')">Copy Negative</button>
+      </div>
+      `;
+    }
+
+    // FORM EVENTS
+    const fields = ['subjek','aksi','detail','mood','pencahayaan','latar','ekspresi','styleVisual'];
+    fields.forEach(id=>{
+      document.getElementById(id).addEventListener('input', buildEngineOutput);
+    });
+
+    // Copy Prompt
+    function copyOut(box){
+      let text='';
+      if(box==='txtimg') text=document.getElementById('out-txtimg').innerText;
+      if(box==='img2vid') text=document.getElementById('out-img2vid').innerText;
+      if(box==='neg') text=document.getElementById('out-neg').innerText;
+      navigator.clipboard.writeText(text);
+      alert("Prompt copied!");
+    }
+
+    // Image preview logic
+    window.uploadedImage = null;
+    function showPreview(e){
+      const file = e.target.files[0];
+      if(file){
+        const img = document.getElementById('imgPreview');
+        img.style.display = "block";
+        img.src = URL.createObjectURL(file);
+        window.uploadedImage = file.name; // Demo only (real upload: backend)
+        buildEngineOutput();
+      }
+    }
+
+    // Preset Generator
+    function applyPreset(type){
+      if(type==='fashion'){
+        document.getElementById('subjek').value = "Seorang wanita mengenakan gamis putih elegan";
+        document.getElementById('aksi').value = "Berdiri anggun dengan senyuman lembut, memperlihatkan detail kain gamis";
+        document.getElementById('detail').value = "Gamis berbahan katun premium, desain longgar dan nyaman, lengan panjang dengan aksen renda halus";
+        document.getElementById('mood').value = "Elegan dan santai, memberikan kesan nyaman dan stylish";
+        document.getElementById('pencahayaan').value = "Cahaya alami soft (golden hour)";
+        document.getElementById('latar').value = "Taman hijau dengan bunga-bunga bermekaran";
+        document.getElementById('ekspresi').value = "Senyuman lembut, percaya diri";
+        document.getElementById('styleVisual').value = "Cinematic, ultrarealistic, bokeh, pastel";
+      } else if(type==='sport'){
+        document.getElementById('subjek').value = "Pemain futsal muda";
+        document.getElementById('aksi').value = "Melakukan sliding tackle dramatis";
+        document.getElementById('detail').value = "Jersey berkeringat, sepatu kotor, bola meluncur deras";
+        document.getElementById('mood').value = "Intens, dramatis, penuh semangat";
+        document.getElementById('pencahayaan').value = "Stadium lights, high contrast";
+        document.getElementById('latar').value = "Lapangan futsal indoor, crowd bersorak";
+        document.getElementById('ekspresi').value = "Fokus, tegang, penuh energi";
+        document.getElementById('styleVisual').value = "Cinematic, action, motion blur";
+      } else if(type==='ads'){
+        document.getElementById('subjek').value = "Seorang kasir ramah";
+        document.getElementById('aksi').value = "Melayani pelanggan dengan senyum, menyerahkan struk belanja";
+        document.getElementById('detail').value = "Seragam rapi, meja kasir bersih, keranjang belanja penuh";
+        document.getElementById('mood').value = "Profesional, ramah, service-oriented";
+        document.getElementById('pencahayaan').value = "Cahaya neon indoor, terang";
+        document.getElementById('latar').value = "Supermarket modern, etalase produk";
+        document.getElementById('ekspresi').value = "Senyum hangat, eye contact";
+        document.getElementById('styleVisual').value = "Clean, commercial, editorial";
+      }
+      buildEngineOutput();
+    }
+
+    // Randomizer (untuk demo)
+    function randomizeAll(){
+      const subs = [
+        "Anak kecil bermain layang-layang",
+        "Model pria dengan jaket kulit",
+        "Seorang chef wanita membuat sushi",
+        "Gitaris di atas panggung konser",
+        "Barista pria di coffee shop vintage",
+        "Seorang ibu menyiram bunga"
+      ];
+      const aksis = [
+        "Melompat tinggi dengan ekspresi ceria",
+        "Berjalan santai di bawah hujan ringan",
+        "Menghias kue dengan teliti",
+        "Menyanyikan lagu rock dengan penuh semangat",
+        "Menyajikan kopi latte art",
+        "Menari di taman penuh bunga"
+      ];
+      const details = [
+        "Baju berwarna cerah, aksesoris unik",
+        "Jaket kulit hitam, celana denim robek",
+        "Seragam chef bersih, celemek putih",
+        "Gitar merah, lampu sorot warna-warni",
+        "Apron coklat, gelas kopi vintage",
+        "Bunga mawar merah, sarung tangan taman"
+      ];
+      const moods = [
+        "Ceria, bebas, penuh inspirasi",
+        "Elegan dan maskulin",
+        "Fokus, kreatif, passionate",
+        "Enerjik, meriah, penuh crowd",
+        "Santai, cozy, aesthetic",
+        "Harmonis, damai, penuh cinta"
+      ];
+      const lights = [
+        "Golden hour, soft sunlight",
+        "Lampu neon malam hari",
+        "Pencahayaan studio professional",
+        "Sunlight streaming through window",
+        "Cahaya lampu taman kuning hangat",
+        "Cahaya pagi yang lembut"
+      ];
+      const latar = [
+        "Padang rumput luas",
+        "Kota modern di malam hari",
+        "Dapur restoran Jepang",
+        "Panggung konser outdoor",
+        "Coffee shop retro",
+        "Taman bunga tropis"
+      ];
+      const ekspresi = [
+        "Ekspresi bahagia",
+        "Wajah serius penuh determinasi",
+        "Senyum puas dan ramah",
+        "Mimik kagum dan surprise",
+        "Cemberut lucu",
+        "Ekspresi fokus"
+      ];
+      const styles = [
+        "Vivid, ultrarealistic, motion blur",
+        "Cinematic, vintage, grainy",
+        "Illustrative, dreamy, soft bokeh",
+        "Clean, editorial, pastel",
+        "High contrast, neon, energetic",
+        "Soft, floral, ethereal"
+      ];
+      function r(arr){return arr[Math.floor(Math.random()*arr.length)];}
+      document.getElementById('subjek').value = r(subs);
+      document.getElementById('aksi').value = r(aksis);
+      document.getElementById('detail').value = r(details);
+      document.getElementById('mood').value = r(moods);
+      document.getElementById('pencahayaan').value = r(lights);
+      document.getElementById('latar').value = r(latar);
+      document.getElementById('ekspresi').value = r(ekspresi);
+      document.getElementById('styleVisual').value = r(styles);
+      buildEngineOutput();
+    }
+
+    // INIT FIRST OUTPUT
+    buildEngineOutput();
+  </script>
+</body>
+</html>
